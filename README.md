@@ -29,7 +29,7 @@ ludus_forgejo_db_type: "sqlite3"
 
 # Bootstrap admin account on first install
 ludus_forgejo_create_admin: true
-ludus_forgejo_admin_user: "myadminadmin"
+ludus_forgejo_admin_user: "ludusadmin"
 ludus_forgejo_admin_password: "ForgejoPW1!"
 ludus_forgejo_admin_email: "admin@localhost"
 
