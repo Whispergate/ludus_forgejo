@@ -37,7 +37,7 @@ ludus_forgejo_internal_token: "ChangeMeToSomethingRandom64CharactersLong11111111
 
 # Admin account bootstrapped on first run (uses Forgejo CLI)
 ludus_forgejo_create_admin: true
-ludus_forgejo_admin_user: "admin"
+ludus_forgejo_admin_user: "ludusadmin"
 ludus_forgejo_admin_password: "ForgejoPW1!"
 ludus_forgejo_admin_email: "admin@localhost"
 
