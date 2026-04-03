@@ -1,0 +1,22 @@
+galaxy_info:
+  role_name: ludus_forgejo
+  author: "Whispergate"
+  description: "Installs and configures Forgejo (the engine behind Codeberg) on a Linux host"
+  license: BSD-2-Clause
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+  galaxy_tags:
+    - git
+    - forge
+    - forgejo
+    - ludus
+
+dependencies: []

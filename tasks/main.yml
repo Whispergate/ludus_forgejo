@@ -1,0 +1,178 @@
+---
+- name: Install required packages
+  ansible.builtin.package:
+    name:
+      - git
+      - curl
+      - wget
+    state: present
+
+- name: Create forgejo system group
+  ansible.builtin.group:
+    name: "{{ ludus_forgejo_group }}"
+    system: true
+    state: present
+
+- name: Create forgejo system user
+  ansible.builtin.user:
+    name: "{{ ludus_forgejo_user }}"
+    group: "{{ ludus_forgejo_group }}"
+    home: "/home/{{ ludus_forgejo_user }}"
+    shell: /bin/bash
+    system: true
+    create_home: true
+    state: present
+
+- name: Create forgejo directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ludus_forgejo_user }}"
+    group: "{{ ludus_forgejo_group }}"
+    mode: "0750"
+  loop:
+    - "{{ ludus_forgejo_work_dir }}"
+    - "{{ ludus_forgejo_work_dir }}/data"
+    - "{{ ludus_forgejo_work_dir }}/indexers"
+    - "{{ ludus_forgejo_repo_root }}"
+    - "{{ ludus_forgejo_log_dir }}"
+
+- name: Create forgejo config directory
+  ansible.builtin.file:
+    path: "{{ ludus_forgejo_config_dir }}"
+    state: directory
+    owner: "{{ ludus_forgejo_user }}"
+    group: "{{ ludus_forgejo_group }}"
+    mode: "0750"
+
+- name: Set forgejo binary URL
+  ansible.builtin.set_fact:
+    _forgejo_url: "https://codeberg.org/forgejo/forgejo/releases/download/v{{ ludus_forgejo_version }}/forgejo-{{ ludus_forgejo_version }}-linux-{{ ludus_forgejo_arch }}"
+
+- name: Check if forgejo binary already installed at target version
+  ansible.builtin.stat:
+    path: "{{ ludus_forgejo_install_dir }}/forgejo"
+  register: _forgejo_bin
+
+- name: Get installed forgejo version (if binary exists)
+  ansible.builtin.command:
+    cmd: "{{ ludus_forgejo_install_dir }}/forgejo --version"
+  register: _forgejo_installed_version
+  changed_when: false
+  failed_when: false
+  when: _forgejo_bin.stat.exists
+
+- name: Download forgejo binary
+  ansible.builtin.get_url:
+    url: "{{ _forgejo_url }}"
+    dest: "{{ ludus_forgejo_install_dir }}/forgejo"
+    mode: "0755"
+    owner: root
+    group: root
+  when: >
+    not _forgejo_bin.stat.exists or
+    ludus_forgejo_version not in (_forgejo_installed_version.stdout | default(''))
+  notify: Restart forgejo
+
+- name: Deploy app.ini
+  ansible.builtin.template:
+    src: app.ini.j2
+    dest: "{{ ludus_forgejo_config_dir }}/app.ini"
+    owner: "{{ ludus_forgejo_user }}"
+    group: "{{ ludus_forgejo_group }}"
+    mode: "0660"
+  notify: Restart forgejo
+
+- name: Deploy systemd unit file
+  ansible.builtin.template:
+    src: forgejo.service.j2
+    dest: /etc/systemd/system/forgejo.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart forgejo
+
+- name: Enable and start forgejo service
+  ansible.builtin.systemd:
+    name: forgejo
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Wait for forgejo HTTP port to be available
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: "{{ ludus_forgejo_http_port }}"
+    delay: 10
+    timeout: 180
+    sleep: 5
+  when: ludus_forgejo_create_admin
+
+- name: Check if admin user already exists
+  ansible.builtin.shell:
+    cmd: >
+      sudo -u {{ ludus_forgejo_user }}
+      FORGEJO_WORK_DIR={{ ludus_forgejo_work_dir }}
+      HOME=/home/{{ ludus_forgejo_user }}
+      {{ ludus_forgejo_install_dir }}/forgejo admin user list
+      --config {{ ludus_forgejo_config_dir }}/app.ini
+  register: _forgejo_users
+  changed_when: false
+  when: ludus_forgejo_create_admin
+
+- name: Create admin user
+  ansible.builtin.shell:
+    cmd: >
+      sudo -u {{ ludus_forgejo_user }}
+      FORGEJO_WORK_DIR={{ ludus_forgejo_work_dir }}
+      HOME=/home/{{ ludus_forgejo_user }}
+      {{ ludus_forgejo_install_dir }}/forgejo admin user create
+      --config {{ ludus_forgejo_config_dir }}/app.ini
+      --username {{ ludus_forgejo_admin_user }}
+      --password '{{ ludus_forgejo_admin_password }}'
+      --email {{ ludus_forgejo_admin_email }}
+      --admin
+      --must-change-password=false
+  when:
+    - ludus_forgejo_create_admin
+    - ludus_forgejo_admin_user not in _forgejo_users.stdout
+  changed_when: true
+
+# Optional nginx reverse proxy
+- name: Install nginx
+  ansible.builtin.package:
+    name: nginx
+    state: present
+  when: ludus_forgejo_setup_nginx
+
+- name: Deploy nginx vhost config
+  ansible.builtin.template:
+    src: nginx_forgejo.conf.j2
+    dest: /etc/nginx/sites-available/forgejo.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: ludus_forgejo_setup_nginx
+  notify: Reload nginx
+
+- name: Enable nginx site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/forgejo.conf
+    dest: /etc/nginx/sites-enabled/forgejo.conf
+    state: link
+  when: ludus_forgejo_setup_nginx
+  notify: Reload nginx
+
+- name: Remove default nginx site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  when: ludus_forgejo_setup_nginx
+  notify: Reload nginx
+
+- name: Ensure nginx is started and enabled
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: true
+    state: started
+  when: ludus_forgejo_setup_nginx

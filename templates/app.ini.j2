@@ -1,0 +1,37 @@
+; Managed by Ansible — do not edit manually
+
+[DEFAULT]
+APP_NAME = Forgejo
+
+[server]
+DOMAIN           = {{ ludus_forgejo_domain }}
+HTTP_PORT        = {{ ludus_forgejo_http_port }}
+ROOT_URL         = {{ ludus_forgejo_root_url }}
+DISABLE_SSH      = {{ ludus_forgejo_disable_ssh | lower }}
+SSH_PORT         = {{ ludus_forgejo_ssh_port }}
+START_SSH_SERVER = false
+
+[database]
+DB_TYPE  = {{ ludus_forgejo_db_type }}
+HOST     = {{ ludus_forgejo_db_host }}
+NAME     = {{ ludus_forgejo_db_name }}
+USER     = {{ ludus_forgejo_db_user }}
+PASSWD   = {{ ludus_forgejo_db_passwd }}
+PATH     = {{ ludus_forgejo_db_path }}
+
+[repository]
+ROOT = {{ ludus_forgejo_repo_root }}
+
+[security]
+SECRET_KEY         = {{ ludus_forgejo_secret_key }}
+INTERNAL_TOKEN     = {{ ludus_forgejo_internal_token }}
+INSTALL_LOCK       = true
+
+[service]
+DISABLE_REGISTRATION = {{ ludus_forgejo_disable_registration | lower }}
+REQUIRE_SIGNIN_VIEW  = false
+
+[log]
+MODE      = file
+LEVEL     = Info
+ROOT_PATH = {{ ludus_forgejo_log_dir }}

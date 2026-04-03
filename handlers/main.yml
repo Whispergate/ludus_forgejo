@@ -1,0 +1,11 @@
+---
+- name: Restart forgejo
+  ansible.builtin.systemd:
+    name: forgejo
+    state: restarted
+    daemon_reload: true
+
+- name: Reload nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: reloaded

@@ -1,0 +1,49 @@
+---
+# Forgejo version to install
+ludus_forgejo_version: "14.0.3"
+ludus_forgejo_arch: "amd64"
+
+# System user/group that runs the service
+ludus_forgejo_user: "git"
+ludus_forgejo_group: "git"
+
+# Install paths
+ludus_forgejo_install_dir: "/usr/local/bin"
+ludus_forgejo_work_dir: "/var/lib/forgejo"
+ludus_forgejo_config_dir: "/etc/forgejo"
+ludus_forgejo_log_dir: "/var/log/forgejo"
+
+# app.ini — server section
+ludus_forgejo_domain: "localhost"
+ludus_forgejo_http_port: 3000
+ludus_forgejo_ssh_port: 2222
+ludus_forgejo_root_url: "http://{{ ludus_forgejo_domain }}:{{ ludus_forgejo_http_port }}/"
+ludus_forgejo_disable_ssh: false
+
+# app.ini — database section (sqlite3 | mysql | postgres)
+ludus_forgejo_db_type: "sqlite3"
+ludus_forgejo_db_host: "127.0.0.1:5432"
+ludus_forgejo_db_name: "forgejo"
+ludus_forgejo_db_user: "forgejo"
+ludus_forgejo_db_passwd: "forgejo"
+ludus_forgejo_db_path: "{{ ludus_forgejo_work_dir }}/data/forgejo.db"
+
+# app.ini — repository section
+ludus_forgejo_repo_root: "{{ ludus_forgejo_work_dir }}/repositories"
+
+# app.ini — security section
+ludus_forgejo_secret_key: "ChangeMeToSomethingRandom64CharactersLong00000000000000000000000"
+ludus_forgejo_internal_token: "ChangeMeToSomethingRandom64CharactersLong11111111111111111111111"
+
+# Admin account bootstrapped on first run (uses Forgejo CLI)
+ludus_forgejo_create_admin: true
+ludus_forgejo_admin_user: "admin"
+ludus_forgejo_admin_password: "ForgejoPW1!"
+ludus_forgejo_admin_email: "admin@localhost"
+
+# Whether to enable registration for other users
+ludus_forgejo_disable_registration: false
+
+# Reverse-proxy nginx setup (set to true if you want nginx terminating TLS)
+ludus_forgejo_setup_nginx: false
+ludus_forgejo_nginx_server_name: "{{ ludus_forgejo_domain }}"

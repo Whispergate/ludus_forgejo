@@ -1,0 +1,22 @@
+[Unit]
+Description=Forgejo (Beyond coding. We forge.)
+After=network.target
+{% if ludus_forgejo_db_type != 'sqlite3' %}
+After=postgresql.service
+After=mysql.service
+{% endif %}
+
+[Service]
+Type=simple
+User={{ ludus_forgejo_user }}
+Group={{ ludus_forgejo_group }}
+WorkingDirectory={{ ludus_forgejo_work_dir }}
+ExecStart={{ ludus_forgejo_install_dir }}/forgejo web --config {{ ludus_forgejo_config_dir }}/app.ini
+Restart=on-failure
+RestartSec=5
+Environment=USER={{ ludus_forgejo_user }} HOME=/home/{{ ludus_forgejo_user }} FORGEJO_WORK_DIR={{ ludus_forgejo_work_dir }}
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target
