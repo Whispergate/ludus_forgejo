@@ -52,7 +52,7 @@ None.
 ```yaml
 - hosts: forgejo_hosts
   roles:
-    - your_github_username.ludus_forgejo
+    - whispergate.ludus_forgejo
   vars:
     ludus_forgejo_domain: "forgejo.lab.local"
     ludus_forgejo_http_port: 3000
@@ -73,7 +73,7 @@ ludus:
     cpus: 2
     linux: true
     roles:
-      - your_github_username.ludus_forgejo
+      - whispergate.ludus_forgejo
     role_vars:
       ludus_forgejo_version: "16.0.4"
       ludus_forgejo_domain: "10.{{ range_id | regex_replace('[^0-9]','') }}.10.50"
