@@ -1,4 +1,15 @@
 ---
+- name: Update apt cache and install CA certificates
+  ansible.builtin.apt:
+    name: ca-certificates
+    state: present
+    update_cache: true
+
+- name: Update CA certificate store
+  ansible.builtin.command:
+    cmd: update-ca-certificates
+  changed_when: false
+
 - name: Install required packages
   ansible.builtin.package:
     name:
