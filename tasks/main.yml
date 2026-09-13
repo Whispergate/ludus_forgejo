@@ -138,11 +138,39 @@
     - ludus_forgejo_admin_user not in _forgejo_users.stdout
   changed_when: true
 
-# Optional nginx reverse proxy
-- name: Install nginx
+# Nginx reverse proxy with self-signed SSL
+- name: Install nginx and openssl
   ansible.builtin.package:
-    name: nginx
+    name:
+      - nginx
+      - openssl
     state: present
+  when: ludus_forgejo_setup_nginx
+
+- name: Generate self-signed SSL private key
+  ansible.builtin.command:
+    cmd: >
+      openssl genpkey -algorithm RSA -out {{ ludus_forgejo_ssl_key }}
+      -pkeyopt rsa_keygen_bits:2048
+    creates: "{{ ludus_forgejo_ssl_key }}"
+  when: ludus_forgejo_setup_nginx
+
+- name: Generate self-signed SSL certificate
+  ansible.builtin.command:
+    cmd: >
+      openssl req -new -x509 -key {{ ludus_forgejo_ssl_key }}
+      -out {{ ludus_forgejo_ssl_cert }} -days 3650
+      -subj "/C=US/ST=Lab/L=Lab/O=Ludus/CN={{ ludus_forgejo_nginx_server_name }}"
+  args:
+    creates: "{{ ludus_forgejo_ssl_cert }}"
+  when: ludus_forgejo_setup_nginx
+
+- name: Set SSL key permissions
+  ansible.builtin.file:
+    path: "{{ ludus_forgejo_ssl_key }}"
+    owner: root
+    group: root
+    mode: "0600"
   when: ludus_forgejo_setup_nginx
 
 - name: Deploy nginx vhost config

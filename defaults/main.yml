@@ -1,6 +1,6 @@
 ---
 # Forgejo version to install
-ludus_forgejo_version: "14.0.3"
+ludus_forgejo_version: "16.0.4"
 ludus_forgejo_arch: "amd64"
 
 # System user/group that runs the service
@@ -17,7 +17,7 @@ ludus_forgejo_log_dir: "/var/log/forgejo"
 ludus_forgejo_domain: "localhost"
 ludus_forgejo_http_port: 3000
 ludus_forgejo_ssh_port: 2222
-ludus_forgejo_root_url: "http://{{ ludus_forgejo_domain }}:{{ ludus_forgejo_http_port }}/"
+ludus_forgejo_root_url: "https://{{ ludus_forgejo_domain }}/"
 ludus_forgejo_disable_ssh: false
 
 # app.ini — database section (sqlite3 | mysql | postgres)
@@ -44,6 +44,10 @@ ludus_forgejo_admin_email: "admin@localhost"
 # Whether to enable registration for other users
 ludus_forgejo_disable_registration: false
 
-# Reverse-proxy nginx setup (set to true if you want nginx terminating TLS)
-ludus_forgejo_setup_nginx: false
+# Reverse-proxy nginx setup with self-signed SSL
+ludus_forgejo_setup_nginx: true
 ludus_forgejo_nginx_server_name: "{{ ludus_forgejo_domain }}"
+
+# SSL certificate paths (generated as self-signed by default)
+ludus_forgejo_ssl_cert: "/etc/ssl/certs/forgejo-selfsigned.crt"
+ludus_forgejo_ssl_key: "/etc/ssl/private/forgejo-selfsigned.key"

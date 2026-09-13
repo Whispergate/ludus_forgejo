@@ -10,7 +10,7 @@ A Ludus-compatible template must be running Debian 11/12 or Ubuntu 20.04/22.04.
 
 ```yaml
 # Forgejo version to install
-ludus_forgejo_version: "14.0.3"
+ludus_forgejo_version: "16.0.4"
 ludus_forgejo_arch: "amd64"
 
 # System user that runs the service
@@ -21,7 +21,7 @@ ludus_forgejo_group: "git"
 ludus_forgejo_domain: "localhost"
 ludus_forgejo_http_port: 3000
 ludus_forgejo_ssh_port: 2222
-ludus_forgejo_root_url: "http://{{ ludus_forgejo_domain }}:{{ ludus_forgejo_http_port }}/"
+ludus_forgejo_root_url: "https://{{ ludus_forgejo_domain }}/"
 ludus_forgejo_disable_ssh: false
 
 # Database (sqlite3 | mysql | postgres)
@@ -33,8 +33,10 @@ ludus_forgejo_admin_user: "ludusadmin"
 ludus_forgejo_admin_password: "ForgejoPW1!"
 ludus_forgejo_admin_email: "admin@localhost"
 
-# Set to true + configure domain to drop an nginx reverse-proxy config
-ludus_forgejo_setup_nginx: false
+# Nginx reverse proxy with self-signed SSL (enabled by default)
+ludus_forgejo_setup_nginx: true
+ludus_forgejo_ssl_cert: "/etc/ssl/certs/forgejo-selfsigned.crt"
+ludus_forgejo_ssl_key: "/etc/ssl/private/forgejo-selfsigned.key"
 
 # IMPORTANT — change these secrets before deploying to any network
 ludus_forgejo_secret_key: "ChangeMeToSomethingRandom64CharactersLong00000000000000000000000"
@@ -73,11 +75,11 @@ ludus:
     roles:
       - your_github_username.ludus_forgejo
     role_vars:
-      ludus_forgejo_version: "14.0.3"
+      ludus_forgejo_version: "16.0.4"
       ludus_forgejo_domain: "10.{{ range_id | regex_replace('[^0-9]','') }}.10.50"
       ludus_forgejo_http_port: 3000
-      ludus_forgejo_root_url: "http://10.{{ range_id | regex_replace('[^0-9]','') }}.10.50:3000/"
-      ludus_forgejo_admin_user: "admin"
+      ludus_forgejo_root_url: "https://10.{{ range_id | regex_replace('[^0-9]','') }}.10.50/"
+      ludus_forgejo_admin_user: "ludusadmin"
       ludus_forgejo_admin_password: "ForgejoPW1!"
       ludus_forgejo_secret_key: "ReplaceWithA64CharRandomString_________________________________1"
       ludus_forgejo_internal_token: "ReplaceWithA64CharRandomString_________________________________2"
@@ -97,7 +99,7 @@ ludus range config set -f range-config.yml
 ludus range deploy -t user-defined-roles --limit YOUR_RANGE_ID-forgejo
 ```
 
-After deployment, Forgejo is accessible at `http://<vm_ip>:3000`.
+After deployment, Forgejo is accessible at `https://<vm_ip>` (self-signed certificate — browser will show a warning).
 
 ## License
 
